@@ -2,7 +2,7 @@
 echo "📦 Installing dependencies..."
 
 # Aller dans le dossier back (pas app)
-cd "$(dirname "$0")/.." || exit 1
+cd "$(dirname "$0")/../app" || exit
 
 # Installer les dépendances avec Poetry
 poetry install
