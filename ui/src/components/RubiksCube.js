@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const RubiksCube = () => {
+const RubiksCube = ({ cubeData }) => {
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const animationIdRef = useRef(null);
 
   useEffect(() => {
+    if (!cubeData) return; 
+
     let scene, camera, renderer, controls, rollObject, group;
     let cubes = [];
 
@@ -19,14 +21,45 @@ const RubiksCube = () => {
       back: { axis: "z", value: -1 }
     };
 
-    const colorConditions = [
-      ["x", 1, "green"],
-      ["x", -1, "orange"],
-      ["y", 1, "red"],
-      ["y", -1, "yellow"],
-      ["z", 1, "blue"],
-      ["z", -1, "white"]
-    ];
+    // Fonction pour obtenir la couleur d'une face spécifique d'un cube
+    const getFaceColor = (x, y, z, faceIndex) => {
+      // Conversion des coordonnées Three.js (-1,0,1) vers indices de tableau (0,1,2)
+      const convertCoord = (coord) => coord + 1;
+      
+      // Mappage des faces Three.js vers les faces de l'API
+      // faceIndex correspond à l'ordre des matériaux dans Three.js: [right, left, top, bottom, front, back]
+      const faceMapping = [
+        { face: 0, row: convertCoord(y), col: 2 - convertCoord(z) }, // right (x=1) -> face 0
+        { face: 1, row: convertCoord(y), col: convertCoord(z) },     // left (x=-1) -> face 1  
+        { face: 2, row: 2 - convertCoord(z), col: convertCoord(x) }, // top (y=1) -> face 2
+        { face: 3, row: convertCoord(z), col: convertCoord(x) },     // bottom (y=-1) -> face 3
+        { face: 4, row: convertCoord(y), col: convertCoord(x) },     // front (z=1) -> face 4
+        { face: 5, row: convertCoord(y), col: 2 - convertCoord(x) }  // back (z=-1) -> face 5
+      ];
+
+      // Vérifier si cette face est visible (sur le bord du cube)
+      const isVisibleFace = (faceIdx, x, y, z) => {
+        switch(faceIdx) {
+          case 0: return x === 1;  // right
+          case 1: return x === -1; // left
+          case 2: return y === 1;  // top
+          case 3: return y === -1; // bottom
+          case 4: return z === 1;  // front
+          case 5: return z === -1; // back
+          default: return false;
+        }
+      };
+
+      if (!isVisibleFace(faceIndex, x, y, z)) {
+        return "gray"; // Face interne
+      }
+
+      const mapping = faceMapping[faceIndex];
+      const colorNumber = cubeData.state[mapping.face][mapping.row][mapping.col];
+      const colorName = cubeData.colors[colorNumber.toString()];
+      
+      return colorName || "gray";
+    };
 
     const step = Math.PI / 100;
     const faces = ["front", "back", "left", "right", "top", "bottom"];
@@ -63,13 +96,13 @@ const RubiksCube = () => {
       });
 
     const materials = Object.entries({
-      blue: new THREE.Vector3(0.011, 0.352, 0.65),
-      red: new THREE.Vector3(0.847, 0.203, 0.372),
-      white: new THREE.Vector3(0.956, 0.956, 0.956),
-      green: new THREE.Vector3(0.054, 0.486, 0.117),
-      yellow: new THREE.Vector3(0.807, 0.725, 0.07),
-      orange: new THREE.Vector3(0.792, 0.317, 0.086),
-      gray: new THREE.Vector3(0.301, 0.243, 0.243)
+      blue: new THREE.Color("#0000FF"),
+      red: new THREE.Color("#FF0000"),
+      white: new THREE.Color("#FFFFFF"),
+      green: new THREE.Color("#009B48"),
+      yellow: new THREE.Color("#FFFF00"),
+      orange: new THREE.Color("#FFA500"),
+      gray: new THREE.Color("#000000ff"),
     }).reduce((acc, [key, val]) => ({ ...acc, [key]: createMaterial(val) }), {});
 
     // OrbitControls implementation (simplified version)
@@ -296,14 +329,12 @@ const RubiksCube = () => {
       
       let createCube = (position) => {
         let mat = [];
+        // Créer les matériaux pour chaque face dans l'ordre: [right, left, top, bottom, front, back]
         for (let i = 0; i < 6; i++) {
-          let cnd = colorConditions[i];
-          if (position[cnd[0]] == cnd[1]) {
-            mat.push(materials[cnd[2]]);
-          } else {
-            mat.push(materials.gray);
-          }
+          const colorName = getFaceColor(position.x, position.y, position.z, i);
+          mat.push(materials[colorName]);
         }
+        
         const cube = new THREE.Mesh(geometry, mat);
         cube.position.set(position.x, position.y, position.z);
         cubes.push(cube);
@@ -368,7 +399,24 @@ const RubiksCube = () => {
       
       window.removeEventListener("resize", onWindowResize);
     };
-  }, []);
+  }, [cubeData]); // Dépendance sur cubeData
+
+  if (!cubeData) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#000',
+        color: '#fff',
+        fontSize: '24px'
+      }}>
+        Chargement du cube...
+      </div>
+    );
+  }
 
   return (
     <div 
