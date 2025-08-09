@@ -1,231 +1,189 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-import numpy as np
 import random
+import numpy as np
 
+from models.faces import Face              
+
+
+# ─────────────────────────── utilitaire interne ─────────────────────────
+def _rot(face: np.ndarray, k: int = 1) -> np.ndarray:
+    """Tourne une face d’un quart horaire (`k` > 0) ou antihoraire (`k` < 0)."""
+    return np.rot90(face, -k)              # np.rot90 = sens antihoraire ⇒ on inverse le signe
+
+
+# ─────────────────────────── classe de base ────────────────────────────
 class Move(ABC):
-    def __init__(self):
-        super().__init__()
-    
     @abstractmethod
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        """
-        Abstract method to make a move on the cube.
-        """
-        raise NotImplementedError("This method should be overridden by subclasses")
+    def make_move_on_cube(self, cube: "Cube") -> None: ...
 
-class MoveUPLeft(Move):
-    """Move the upper left corner of the cube (U face clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate top face (face 0) clockwise
-        cube.state[0] = np.rot90(cube.state[0], -1)
-        
-        # Rotate edges: front -> right -> back -> left -> front
-        temp = cube.state[1][0].copy()  # front top row
-        cube.state[1][0] = cube.state[4][0]  # left top row -> front top row
-        cube.state[4][0] = cube.state[2][0]  # back top row -> left top row
-        cube.state[2][0] = cube.state[3][0]  # right top row -> back top row
-        cube.state[3][0] = temp  # front top row -> right top row
 
-class MoveUpRight(Move):
-    """Move the upper right corner of the cube (U face counter-clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate top face (face 0) counter-clockwise
-        cube.state[0] = np.rot90(cube.state[0], 1)
-        
-        # Rotate edges: front -> left -> back -> right -> front
-        temp = cube.state[1][0].copy()  # front top row
-        cube.state[1][0] = cube.state[3][0]  # right top row -> front top row
-        cube.state[3][0] = cube.state[2][0]  # back top row -> right top row
-        cube.state[2][0] = cube.state[4][0]  # left top row -> back top row
-        cube.state[4][0] = temp  # front top row -> left top row
+# ────────────────────────── rotations de faces ──────────────────────────
+class U(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.U] = _rot(s[Face.U])
+        f, r, b, l = s[Face.F][0].copy(), s[Face.R][0].copy(), s[Face.B][0].copy(), s[Face.L][0].copy()
+        s[Face.R][0], s[Face.B][0], s[Face.L][0], s[Face.F][0] = f, r, b, l
 
-class MoveMiddleLeft(Move):
-    """Move the middle left side of the cube (M slice like L)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle slice: front -> top -> back -> bottom -> front
-        temp = cube.state[1][:, 1].copy()  # front middle column
-        cube.state[1][:, 1] = cube.state[5][:, 1]  # bottom middle column -> front
-        cube.state[5][:, 1] = cube.state[2][:, 1][::-1]  # back middle column (reversed) -> bottom
-        cube.state[2][:, 1] = cube.state[0][:, 1][::-1]  # top middle column (reversed) -> back
-        cube.state[0][:, 1] = temp  # front middle column -> top
 
-class MoveMiddleRight(Move):
-    """Move the middle right side of the cube (M slice opposite direction)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle slice: front -> bottom -> back -> top -> front
-        temp = cube.state[1][:, 1].copy()  # front middle column
-        cube.state[1][:, 1] = cube.state[0][:, 1]  # top middle column -> front
-        cube.state[0][:, 1] = cube.state[2][:, 1][::-1]  # back middle column (reversed) -> top
-        cube.state[2][:, 1] = cube.state[5][:, 1][::-1]  # bottom middle column (reversed) -> back
-        cube.state[5][:, 1] = temp  # front middle column -> bottom
+class U_PRIME(Move):
+    def make_move_on_cube(self, cube): [U().make_move_on_cube(cube) for _ in range(3)]
 
-class MoveBottomLeft(Move):
-    """Move the bottom left corner of the cube (D face counter-clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate bottom face (face 5) counter-clockwise
-        cube.state[5] = np.rot90(cube.state[5], 1)
-        
-        # Rotate edges: front -> left -> back -> right -> front
-        temp = cube.state[1][2].copy()  # front bottom row
-        cube.state[1][2] = cube.state[3][2]  # right bottom row -> front bottom row
-        cube.state[3][2] = cube.state[2][2]  # back bottom row -> right bottom row
-        cube.state[2][2] = cube.state[4][2]  # left bottom row -> back bottom row
-        cube.state[4][2] = temp  # front bottom row -> left bottom row
 
-class MoveBottomRight(Move):
-    """Move the bottom right corner of the cube (D face clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate bottom face (face 5) clockwise
-        cube.state[5] = np.rot90(cube.state[5], -1)
-        
-        # Rotate edges: front -> right -> back -> left -> front
-        temp = cube.state[1][2].copy()  # front bottom row
-        cube.state[1][2] = cube.state[4][2]  # left bottom row -> front bottom row
-        cube.state[4][2] = cube.state[2][2]  # back bottom row -> left bottom row
-        cube.state[2][2] = cube.state[3][2]  # right bottom row -> back bottom row
-        cube.state[3][2] = temp  # front bottom row -> right bottom row
+class U2(Move):
+    def make_move_on_cube(self, cube): [U().make_move_on_cube(cube) for _ in range(2)]
 
-class MoveLeftUp(Move):
-    """Move the left side of the cube upwards (L face clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate left face (face 4) clockwise
-        cube.state[4] = np.rot90(cube.state[4], -1)
-        
-        # Rotate edges: front -> top -> back -> bottom -> front
-        temp = cube.state[1][:, 0].copy()  # front left column
-        cube.state[1][:, 0] = cube.state[5][:, 0]  # bottom left column -> front
-        cube.state[5][:, 0] = cube.state[2][:, 2][::-1]  # back right column (reversed) -> bottom
-        cube.state[2][:, 2] = cube.state[0][:, 0][::-1]  # top left column (reversed) -> back
-        cube.state[0][:, 0] = temp  # front left column -> top
 
-class MoveLeftDown(Move):
-    """Move the left side of the cube downwards (L face counter-clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate left face (face 4) counter-clockwise
-        cube.state[4] = np.rot90(cube.state[4], 1)
-        
-        # Rotate edges: front -> bottom -> back -> top -> front
-        temp = cube.state[1][:, 0].copy()  # front left column
-        cube.state[1][:, 0] = cube.state[0][:, 0]  # top left column -> front
-        cube.state[0][:, 0] = cube.state[2][:, 2][::-1]  # back right column (reversed) -> top
-        cube.state[2][:, 2] = cube.state[5][:, 0][::-1]  # bottom left column (reversed) -> back
-        cube.state[5][:, 0] = temp  # front left column -> bottom
+class D(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.D] = _rot(s[Face.D])
+        f, l, b, r = s[Face.F][2].copy(), s[Face.L][2].copy(), s[Face.B][2].copy(), s[Face.R][2].copy()
+        s[Face.L][2], s[Face.B][2], s[Face.R][2], s[Face.F][2] = f, l, b, r
 
-class MoveMiddleUp(Move):
-    """Move the middle layer of the cube upwards (E slice opposite direction)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle horizontal slice: front -> left -> back -> right -> front
-        temp = cube.state[1][1].copy()  # front middle row
-        cube.state[1][1] = cube.state[3][1]  # right middle row -> front
-        cube.state[3][1] = cube.state[2][1]  # back middle row -> right
-        cube.state[2][1] = cube.state[4][1]  # left middle row -> back
-        cube.state[4][1] = temp  # front middle row -> left
 
-class MoveMiddleDown(Move):
-    """Move the middle layer of the cube downwards (E slice like D)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle horizontal slice: front -> right -> back -> left -> front
-        temp = cube.state[1][1].copy()  # front middle row
-        cube.state[1][1] = cube.state[4][1]  # left middle row -> front
-        cube.state[4][1] = cube.state[2][1]  # back middle row -> left
-        cube.state[2][1] = cube.state[3][1]  # right middle row -> back
-        cube.state[3][1] = temp  # front middle row -> right
+class D_PRIME(Move):
+    def make_move_on_cube(self, cube): [D().make_move_on_cube(cube) for _ in range(3)]
 
-class MoveRightUp(Move):
-    """Move the right side of the cube upwards (R face counter-clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate right face (face 3) counter-clockwise
-        cube.state[3] = np.rot90(cube.state[3], 1)
-        
-        # Rotate edges: front -> bottom -> back -> top -> front
-        temp = cube.state[1][:, 2].copy()  # front right column
-        cube.state[1][:, 2] = cube.state[5][:, 2]  # bottom right column -> front
-        cube.state[5][:, 2] = cube.state[2][:, 0][::-1]  # back left column (reversed) -> bottom
-        cube.state[2][:, 0] = cube.state[0][:, 2][::-1]  # top right column (reversed) -> back
-        cube.state[0][:, 2] = temp  # front right column -> top
 
-class MoveRightDown(Move):
-    """Move the right side of the cube downwards (R face clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate right face (face 3) clockwise
-        cube.state[3] = np.rot90(cube.state[3], -1)
-        
-        # Rotate edges: front -> top -> back -> bottom -> front
-        temp = cube.state[1][:, 2].copy()  # front right column
-        cube.state[1][:, 2] = cube.state[0][:, 2]  # top right column -> front
-        cube.state[0][:, 2] = cube.state[2][:, 0][::-1]  # back left column (reversed) -> top
-        cube.state[2][:, 0] = cube.state[5][:, 2][::-1]  # bottom right column (reversed) -> back
-        cube.state[5][:, 2] = temp  # front right column -> bottom
+class D2(Move):
+    def make_move_on_cube(self, cube): [D().make_move_on_cube(cube) for _ in range(2)]
 
-class MoveBackLeft(Move):
-    """Move the back left side of the cube (B face counter-clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate back face (face 2) counter-clockwise
-        cube.state[2] = np.rot90(cube.state[2], 1)
-        
-        # Rotate edges: top -> right -> bottom -> left -> top
-        temp = cube.state[0][0].copy()  # top back row
-        cube.state[0][0] = cube.state[3][:, 2]  # right back column -> top back row
-        cube.state[3][:, 2] = cube.state[5][2][::-1]  # bottom back row (reversed) -> right back column
-        cube.state[5][2] = cube.state[4][:, 0]  # left back column -> bottom back row
-        cube.state[4][:, 0] = temp[::-1]  # top back row (reversed) -> left back column
 
-class MoveBackRight(Move):
-    """Move the back right side of the cube (B face clockwise)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate back face (face 2) clockwise
-        cube.state[2] = np.rot90(cube.state[2], -1)
-        
-        # Rotate edges: top -> left -> bottom -> right -> top
-        temp = cube.state[0][0].copy()  # top back row
-        cube.state[0][0] = cube.state[4][:, 0][::-1]  # left back column (reversed) -> top back row
-        cube.state[4][:, 0] = cube.state[5][2]  # bottom back row -> left back column
-        cube.state[5][2] = cube.state[3][:, 2][::-1]  # right back column (reversed) -> bottom back row
-        cube.state[3][:, 2] = temp  # top back row -> right back column
+class L(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.L] = _rot(s[Face.L])
+        u, f, d, b = s[Face.U][:, 0].copy(), s[Face.F][:, 0].copy(), s[Face.D][:, 0].copy(), s[Face.B][:, 2][::-1].copy()
+        s[Face.F][:, 0], s[Face.D][:, 0], s[Face.B][:, 2], s[Face.U][:, 0] = u, f, d[::-1], b
 
-class MoveSliceLeft(Move):
-    """Move a slice of the cube to the left (S slice like F)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle vertical slice: top -> right -> bottom -> left -> top
-        temp = cube.state[0][1].copy()  # top middle row
-        cube.state[0][1] = cube.state[4][:, 1][::-1]  # left middle column (reversed) -> top middle row
-        cube.state[4][:, 1] = cube.state[5][1]  # bottom middle row -> left middle column
-        cube.state[5][1] = cube.state[3][:, 1][::-1]  # right middle column (reversed) -> bottom middle row
-        cube.state[3][:, 1] = temp  # top middle row -> right middle column
 
-class MoveSliceRight(Move):
-    """Move a slice of the cube to the right (S slice opposite direction)"""
-    def make_move_on_cube(self, cube: 'Cube') -> None:
-        # Rotate middle vertical slice: top -> left -> bottom -> right -> top
-        temp = cube.state[0][1].copy()  # top middle row
-        cube.state[0][1] = cube.state[3][:, 1]  # right middle column -> top middle row
-        cube.state[3][:, 1] = cube.state[5][1][::-1]  # bottom middle row (reversed) -> right middle column
-        cube.state[5][1] = cube.state[4][:, 1]  # left middle column -> bottom middle row
-        cube.state[4][:, 1] = temp[::-1]  # top middle row (reversed) -> left middle column
+class L_PRIME(Move):
+    def make_move_on_cube(self, cube): [L().make_move_on_cube(cube) for _ in range(3)]
 
-MOVES_MAP = {
-    1: MoveUPLeft,
-    2: MoveUpRight,
-    3: MoveMiddleLeft,
-    4: MoveMiddleRight,
-    5: MoveBottomLeft,
-    6: MoveBottomRight,
-    7: MoveLeftUp,
-    8: MoveLeftDown,
-    9: MoveMiddleUp,
-    10: MoveMiddleDown,
-    11: MoveRightUp,
-    12: MoveRightDown,
-    13: MoveBackLeft,
-    14: MoveBackRight,
-    15: MoveSliceLeft,
-    16: MoveSliceRight
-}
+
+class L2(Move):
+    def make_move_on_cube(self, cube): [L().make_move_on_cube(cube) for _ in range(2)]
+
+
+class R(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.R] = _rot(s[Face.R])
+        u, f, d, b = s[Face.U][:, 2].copy(), s[Face.F][:, 2].copy(), s[Face.D][:, 2].copy(), s[Face.B][:, 0][::-1].copy()
+        s[Face.F][:, 2], s[Face.D][:, 2], s[Face.B][:, 0], s[Face.U][:, 2] = u, f, d[::-1], b
+
+
+class R_PRIME(Move):
+    def make_move_on_cube(self, cube): [R().make_move_on_cube(cube) for _ in range(3)]
+
+
+class R2(Move):
+    def make_move_on_cube(self, cube): [R().make_move_on_cube(cube) for _ in range(2)]
+
+
+class F(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.F] = _rot(s[Face.F])
+        u, r, d, l = s[Face.U][2].copy(), s[Face.R][:, 0].copy(), s[Face.D][0].copy(), s[Face.L][:, 2].copy()
+        s[Face.R][:, 0], s[Face.D][0], s[Face.L][:, 2], s[Face.U][2] = u[::-1], r, d[::-1], l
+
+
+class F_PRIME(Move):
+    def make_move_on_cube(self, cube): [F().make_move_on_cube(cube) for _ in range(3)]
+
+
+class F2(Move):
+    def make_move_on_cube(self, cube): [F().make_move_on_cube(cube) for _ in range(2)]
+
+
+class B(Move):
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        s[Face.B] = _rot(s[Face.B])
+        u, l, d, r = s[Face.U][0].copy(), s[Face.L][:, 0].copy(), s[Face.D][2].copy(), s[Face.R][:, 2].copy()
+        s[Face.L][:, 0], s[Face.D][2], s[Face.R][:, 2], s[Face.U][0] = u, l[::-1], d, r[::-1]
+
+
+class B_PRIME(Move):
+    def make_move_on_cube(self, cube): [B().make_move_on_cube(cube) for _ in range(3)]
+
+
+class B2(Move):
+    def make_move_on_cube(self, cube): [B().make_move_on_cube(cube) for _ in range(2)]
+
+
+# ──────────────────────── rotations de tranches ─────────────────────────
+class M(Move):                                   # équivalent L′
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        u, f, d, b = s[Face.U][:, 1].copy(), s[Face.F][:, 1].copy(), s[Face.D][:, 1].copy(), s[Face.B][:, 1][::-1].copy()
+        s[Face.F][:, 1], s[Face.D][:, 1], s[Face.B][:, 1], s[Face.U][:, 1] = u, f, d[::-1], b
+
+
+class M_PRIME(Move):
+    def make_move_on_cube(self, cube): [M().make_move_on_cube(cube) for _ in range(3)]
+
+
+class M2(Move):
+    def make_move_on_cube(self, cube): [M().make_move_on_cube(cube) for _ in range(2)]
+
+
+class E(Move):                                   # équivalent D′
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        f, l, b, r = s[Face.F][1].copy(), s[Face.L][1].copy(), s[Face.B][1].copy(), s[Face.R][1].copy()
+        s[Face.L][1], s[Face.B][1], s[Face.R][1], s[Face.F][1] = f, l, b, r
+
+
+class E_PRIME(Move):
+    def make_move_on_cube(self, cube): [E().make_move_on_cube(cube) for _ in range(3)]
+
+
+class E2(Move):
+    def make_move_on_cube(self, cube): [E().make_move_on_cube(cube) for _ in range(2)]
+
+
+class S(Move):                                   # équivalent F
+    def make_move_on_cube(self, cube):
+        s = cube.state
+        u, r, d, l = s[Face.U][1].copy(), s[Face.R][:, 1].copy(), s[Face.D][1].copy(), s[Face.L][:, 1].copy()
+        s[Face.R][:, 1], s[Face.D][1], s[Face.L][:, 1], s[Face.U][1] = u[::-1], r, d[::-1], l
+
+
+class S_PRIME(Move):
+    def make_move_on_cube(self, cube): [S().make_move_on_cube(cube) for _ in range(3)]
+
+
+class S2(Move):
+    def make_move_on_cube(self, cube): [S().make_move_on_cube(cube) for _ in range(2)]
+
+
+# ──────────────────────── outils de tirage ──────────────────────────────
+BASE_MOVES = [
+    U, U_PRIME, D, D_PRIME, L, L_PRIME, R, R_PRIME,
+    F, F_PRIME, B, B_PRIME, M, M_PRIME, E, E_PRIME, S, S_PRIME
+]
+MOVES = BASE_MOVES + [U2, D2, L2, R2, F2, B2, M2, E2, S2]
 
 def get_random_move() -> Move:
-    """Get a random move from the MOVES_MAP"""
-    return random.choice(list(MOVES_MAP.values()))()
+    return random.choice(MOVES)()
 
 def get_random_moves(n: int) -> list[Move]:
-    """Get a list of random moves"""
-    return [random.choice(list(MOVES_MAP.values()))() for _ in range(n)]
+    return [random.choice(MOVES)() for _ in range(n)]
+
+
+# ──────────────────── table “notation → classe” ─────────────────────────
+NOTATION_TO_MOVE = {
+    "U": U,  "U'": U_PRIME,  "U2": U2,
+    "D": D,  "D'": D_PRIME,  "D2": D2,
+    "L": L,  "L'": L_PRIME,  "L2": L2,
+    "R": R,  "R'": R_PRIME,  "R2": R2,
+    "F": F,  "F'": F_PRIME,  "F2": F2,
+    "B": B,  "B'": B_PRIME,  "B2": B2,
+    "M": M,  "M'": M_PRIME,  "M2": M2,
+    "E": E,  "E'": E_PRIME,  "E2": E2,
+    "S": S,  "S'": S_PRIME,  "S2": S2,
+}
