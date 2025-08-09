@@ -16,17 +16,16 @@ class Cube:
         moves = get_random_moves(random.randint(min_move, max_move))
         for move in moves:
             move.make_move_on_cube(self)
-            print(f"Move: {move.__class__.__name__}")
         
 
     @property
     def flatten_cube(self) -> np.ndarray :
-        return self.state.flatten
+        return self.state.flatten()
     
     def __dict__(self):
         return {
             "state": self.state.tolist(),
-            "flatten_state": self.flatten_cube().tolist(),        
+            "flatten_state": self.flatten_cube.tolist(),        
             "colors" : {color : color.name for color in Colors}    
         }
 
