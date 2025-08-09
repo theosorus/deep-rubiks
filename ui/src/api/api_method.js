@@ -16,10 +16,22 @@ export class CubeApiMethods {
     }
   }
 
+  static async getMoves() {
+    const { data } = await apiService.get('/cube/moves');
+    return data; 
+  }
+
+  static async rotate(move) {
+    const { data } = await apiService.post('/cube/rotate', { move });
+    return data;
+  }
+
 }
 
 export const cubeApi = {
   getCube: () => CubeApiMethods.getCube(),
+  getMoves: () => CubeApiMethods.getMoves(),
+  rotate: (move) => CubeApiMethods.rotate(move),
   
   checkHealth: async () => {
     try {
