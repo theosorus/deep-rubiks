@@ -26,12 +26,18 @@ export class CubeApiMethods {
     return data;
   }
 
+  static async reset() {
+    const { data } = await apiService.get('/cube/reset');
+    return data;
+  }
+
 }
 
 export const cubeApi = {
   getCube: () => CubeApiMethods.getCube(),
   getMoves: () => CubeApiMethods.getMoves(),
   rotate: (move) => CubeApiMethods.rotate(move),
+  reset: () => CubeApiMethods.reset(),
   
   checkHealth: async () => {
     try {
