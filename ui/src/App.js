@@ -1,14 +1,16 @@
+// App.js
 import React, { useEffect, useRef, useState } from 'react';
 import { cubeApi } from './api/api_method';
 import RubiksCube from './components/Rubiks/RubiksCube';
 import MoveButtons from './components/MoveButtons/MoveButtons';
+import FunctionnalsButtons from './components/FunctionnalsButtons/FunctionnalesButtons';
 
 function App() {
   const [cubeData, setCubeData] = useState(null);
-  const [moves, setMoves]       = useState([]);
-  const cubeRef = useRef(null);          // <-- réf vers RubiksCube
+  const [moves, setMoves] = useState([]);
+  const [isResetting, setIsResetting] = useState(false);
+  const cubeRef = useRef(null);
 
-  /* -------- RÉCUPÉRATION DES DONNÉES AU CHARGEMENT -------- */
   useEffect(() => {
     (async () => {
       try { setCubeData(await cubeApi.getCube()); } catch(e){ console.error(e); }
@@ -16,24 +18,30 @@ function App() {
     })();
   }, []);
 
-  /* -------- APPEL AU BACK + ROTATION GRAPHIQUE -------- */
   const handleMove = async (move) => {
-    /* 1) On demande tout de suite la rotation visuelle  */
     cubeRef.current?.addCubeRotation(move);
+    try { await cubeApi.rotate(move); } catch (err){ console.error("Erreur API :", err); }
+  };
 
-    /* 2) On notifie l’API (async/await pour gérer l’erreur proprement) */
+
+  const handleReset = async () => {
+    setIsResetting(true);
     try {
-      await cubeApi.rotate(move);
-    } catch (err){
-      console.error("Erreur API :", err);
-      /* Optionnel : rollback visuel si l’appel échoue */
+      await cubeApi.reset();  
+      const freshCube = await cubeApi.getCube();
+      console.log("Cube réinitialisé :", freshCube);
+      setCubeData(freshCube);                   
+    } catch (e) {
+      console.error("Reset échoué :", e);
+    } finally {
+      setIsResetting(false);
     }
   };
 
-  /* -------- RENDER -------- */
   return (
     <div className="App">
       <MoveButtons moves={moves} onClick={handleMove} />
+      <FunctionnalsButtons onReset={handleReset} isLoading={isResetting} />
       <RubiksCube ref={cubeRef} cubeData={cubeData} />
     </div>
   );
