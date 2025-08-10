@@ -16,6 +16,9 @@ class Cube:
         moves = get_random_moves(random.randint(min_move, max_move))
         for move in moves:
             move.make_move_on_cube(self)
+            
+    def reset_cube(self) -> None:
+        self.state = self._init_cube()
         
 
     @property
@@ -28,5 +31,11 @@ class Cube:
             "flatten_state": self.flatten_cube.tolist(),        
             "colors" : {color : color.name for color in Colors}    
         }
+        
+    def __str__(self):
+        out = ""
+        for name,face in zip(Colors, self.state):
+            out += f"{name.name} face:\n{face}\n"
+        return out
 
 
