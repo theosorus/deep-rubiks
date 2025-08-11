@@ -1,41 +1,63 @@
+# models/cube.py
 import numpy as np
-from models.colors import Colors
-from models.moves import get_random_moves
-
 import random
+from models.colors import DEFAULT_FACE_COLORS,DEFAULT_FACE_ORDER,COLORS,COLORS_TO_INT,INT_TO_COLORS
+from models.moves import get_random_moves
 
 
 class Cube:
     def __init__(self):
-        self.state = self._init_cube() # [6,3,3]
+        self.state = self._init_cube()
 
     def _init_cube(self) -> np.ndarray:
-        return np.array([np.full((3, 3), c.value) for c in Colors])
-
-    def shuffle_cube(self,min_move:int = 100,max_move: int = 500) -> None:
+        state = np.empty((6,3,3), dtype=object)
+        for idx,face in enumerate(DEFAULT_FACE_ORDER):
+            color = DEFAULT_FACE_COLORS[face]
+            color_int = COLORS_TO_INT[color]
+            state[idx] = np.full((3,3), color_int, dtype=object)
+        return state
+        
+    def shuffle_cube(self, min_move: int = 100, max_move: int = 500) -> None:
         moves = get_random_moves(random.randint(min_move, max_move))
-        for move in moves:
-            move.make_move_on_cube(self)
-            
+        for m in moves:
+            m.make_move_on_cube(self)
+
+    def get_face(self, k: str) -> np.ndarray:
+        index = self.get_face_index(k)
+        return self.state[index]
+    
+    def get_face_index(self, k: str) -> int:
+        index = DEFAULT_FACE_ORDER.index(k)
+        if index < 0 or index >= len(self.state):
+            raise ValueError(f"Invalid face key: {k}. Must be one of {DEFAULT_FACE_ORDER}.")
+        return index
+    
     def reset_cube(self) -> None:
         self.state = self._init_cube()
-        
-
+    
     @property
     def flatten_cube(self) -> np.ndarray :
         return self.state.flatten()
-    
+
+    def set_face(self, k: str, arr: np.ndarray) -> None:
+        if arr.shape != (3, 3):
+            raise ValueError(f"Face array must be of shape (3, 3), got {arr.shape}.")
+        index = self.get_face_index(k)
+        self.state[index] = arr
+
     def __dict__(self):
         return {
             "state": self.state.tolist(),
-            "flatten_state": self.flatten_cube.tolist(),        
-            "colors" : {color : color.name for color in Colors}    
+            "flatten_state": self.flatten_cube.tolist()  ,
+            "colors" : INT_TO_COLORS,  
+            "face_order": DEFAULT_FACE_ORDER
         }
-        
-    def __str__(self):
-        out = ""
-        for name,face in zip(Colors, self.state):
-            out += f"{name.name} face:\n{face}\n"
-        return out
 
-
+    def __str__(self) -> str:
+        s = ["----------"]
+        for k in DEFAULT_FACE_ORDER:
+            s.append(f"{k} face:")
+            for row in self.state[self.get_face_index(k)]:
+                s.append("[ " + "  ".join(f"{str(INT_TO_COLORS[v]):7}" for v in row) + " ]")
+        s.append("----------")
+        return "\n".join(s)
