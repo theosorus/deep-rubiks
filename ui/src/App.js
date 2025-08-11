@@ -9,30 +9,48 @@ function App() {
   const [cubeData, setCubeData] = useState(null);
   const [moves, setMoves] = useState([]);
   const [isResetting, setIsResetting] = useState(false);
+  const [showFaceNames, setShowFaceNames] = useState(false);
   const cubeRef = useRef(null);
 
+  // Chargement initial
   useEffect(() => {
     (async () => {
-      try { setCubeData(await cubeApi.getCube()); } catch(e){ console.error(e); }
-      try { setMoves(await cubeApi.getMoves());   } catch(e){ console.error(e); }
+      try { setCubeData(await cubeApi.getCube()); } catch (e) { console.error(e); }
+      try { setMoves(await cubeApi.getMoves()); } catch (e) { console.error(e); }
     })();
   }, []);
 
+  // Un seul coup
   const handleMove = async (move) => {
+    // Joue l’anim immédiatement côté client
     cubeRef.current?.addCubeRotation(move);
-    try { await cubeApi.rotate(move); } catch (err){ console.error("Erreur API :", err); }
+    // Puis notifie le backend
+    try {
+      await cubeApi.rotate(move);
+    } catch (err) {
+      console.error('Erreur API :', err);
+    }
   };
 
+  // Enchaîner une séquence de coups (optionnel)
+  const handleSequence = async (sequence = []) => {
+    for (const mv of sequence) {
+      cubeRef.current?.addCubeRotation(mv);
+      try { await cubeApi.rotate(mv); } catch (e) { console.error(e); }
+    }
+  };
 
+  // Reset complet
   const handleReset = async () => {
     setIsResetting(true);
+    // stoppe/efface toute anim locale encore en attente
+    cubeRef.current?.clearQueue();
     try {
-      await cubeApi.reset();  
+      await cubeApi.reset();
       const freshCube = await cubeApi.getCube();
-      console.log("Cube réinitialisé :", freshCube);
-      setCubeData(freshCube);                   
+      setCubeData(freshCube);  // le moteur se remontera proprement
     } catch (e) {
-      console.error("Reset échoué :", e);
+      console.error('Reset échoué :', e);
     } finally {
       setIsResetting(false);
     }
@@ -41,7 +59,20 @@ function App() {
   return (
     <div className="App">
       <MoveButtons moves={moves} onClick={handleMove} />
-      <FunctionnalsButtons onReset={handleReset} isLoading={isResetting} />
+      <FunctionnalsButtons
+        onReset={handleReset}
+        isLoading={isResetting}
+        // exemples d’API moteur (si tu veux des boutons dédiés) :
+        onPause={() => cubeRef.current?.pause?.()}
+        onResume={() => cubeRef.current?.resume?.()}
+        onClear={() => cubeRef.current?.clearQueue?.()}
+        showFaceNames={showFaceNames}
+        onToggleFaceNames={() => {
+          const next = !showFaceNames;
+          setShowFaceNames(next);
+          cubeRef.current?.setFaceLabelsVisible?.(next);
+        }}
+      />
       <RubiksCube ref={cubeRef} cubeData={cubeData} />
     </div>
   );
