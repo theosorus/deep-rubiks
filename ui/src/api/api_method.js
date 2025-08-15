@@ -31,6 +31,11 @@ export class CubeApiMethods {
     return data;
   }
 
+  static async shuffle(nb_moves) {
+    const { data } = await apiService.get(`/cube/shuffle?nb_moves=${nb_moves}`);
+    return data;
+  }
+
 }
 
 export const cubeApi = {
@@ -38,6 +43,7 @@ export const cubeApi = {
   getMoves: () => CubeApiMethods.getMoves(),
   rotate: (move) => CubeApiMethods.rotate(move),
   reset: () => CubeApiMethods.reset(),
+  shuffle: (nb_moves) => CubeApiMethods.shuffle(nb_moves),
   
   checkHealth: async () => {
     try {
