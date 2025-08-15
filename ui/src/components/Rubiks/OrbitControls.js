@@ -1,6 +1,5 @@
 import * as THREE from 'three';
  
-// OrbitControls implementation (simplified version)
 class OrbitControls {
     constructor(camera, domElement) {
     this.camera = camera;

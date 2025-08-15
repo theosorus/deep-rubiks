@@ -12,7 +12,7 @@ function App() {
   const [showFaceNames, setShowFaceNames] = useState(false);
   const cubeRef = useRef(null);
 
-  // Chargement initial
+  // initial data fetch
   useEffect(() => {
     (async () => {
       try { setCubeData(await cubeApi.getCube()); } catch (e) { console.error(e); }
@@ -24,19 +24,15 @@ function App() {
   cubeRef.current?.setFaceLabelsVisible?.(showFaceNames);
 }, [cubeData, showFaceNames]);
 
-  // Un seul coup
   const handleMove = async (move) => {
-    // Joue l’anim immédiatement côté client
     cubeRef.current?.addCubeRotation(move);
-    // Puis notifie le backend
     try {
       await cubeApi.rotate(move);
     } catch (err) {
-      console.error('Erreur API :', err);
+      console.error(' API error :', err);
     }
   };
 
-  // Enchaîner une séquence de coups (optionnel)
   const handleSequence = async (sequence = []) => {
     for (const mv of sequence) {
       cubeRef.current?.addCubeRotation(mv);
@@ -44,17 +40,16 @@ function App() {
     }
   };
 
-  // Reset complet
+
   const handleReset = async () => {
     setIsResetting(true);
-    // stoppe/efface toute anim locale encore en attente
     cubeRef.current?.clearQueue();
     try {
       await cubeApi.reset();
       const freshCube = await cubeApi.getCube();
-      setCubeData(freshCube);  // le moteur se remontera proprement
+      setCubeData(freshCube);  
     } catch (e) {
-      console.error('Reset échoué :', e);
+      console.error('reset fail :', e);
     } finally {
       setIsResetting(false);
     }
@@ -67,7 +62,7 @@ function App() {
       setCubeData(freshCube);
     }
     catch (e) {
-      console.error('Mélange échoué :', e);
+      console.error('shuflle success :', e);
     }
   }
 
@@ -78,10 +73,6 @@ function App() {
       <FunctionnalsButtons
         onReset={handleReset}
         isLoading={isResetting}
-        // exemples d’API moteur (si tu veux des boutons dédiés) :
-        onPause={() => cubeRef.current?.pause?.()}
-        onResume={() => cubeRef.current?.resume?.()}
-        onClear={() => cubeRef.current?.clearQueue?.()}
         shuffle={handleShuffle}
         showFaceNames={showFaceNames}
         onToggleFaceNames={() => {

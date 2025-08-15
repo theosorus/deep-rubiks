@@ -10,14 +10,14 @@ export const getFaceColorFactory = (data) => {
   };
 
   return (x, y, z, faceIndex) => {
-    const conv = (n) => n + 1; // [-1..1] -> [0..2]
+    const conv = (n) => n + 1; 
     const faceMap = [
-      { face: idx("R"), row: 2 - conv(y), col: 2 - conv(z) }, // right (flip rows)
-      { face: idx("L"), row: 2 - conv(y), col: conv(z) },     // left  (flip rows)
+      { face: idx("R"), row: 2 - conv(y), col: 2 - conv(z) }, // right 
+      { face: idx("L"), row: 2 - conv(y), col: conv(z) },     // left  
  { face: idx("U"), row:      conv(z), col: conv(x) }, // top
  { face: idx("D"), row: 2 - conv(z), col: conv(x) }, // bottom
-      { face: idx("F"), row: 2 - conv(y), col: conv(x) },     // front (flip rows)
-      { face: idx("B"), row: 2 - conv(y), col: 2 - conv(x) }, // back  (flip rows)
+      { face: idx("F"), row: 2 - conv(y), col: conv(x) },     // front 
+      { face: idx("B"), row: 2 - conv(y), col: 2 - conv(x) }, // back  (
     ];
     const visible = (fi, xx, yy, zz) =>
       (fi===0 && xx===1) || (fi===1 && xx===-1) ||

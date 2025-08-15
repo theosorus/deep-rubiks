@@ -7,7 +7,6 @@ import { moveMapping, rotateConditions } from "./constants";
 import OrbitControls from "../OrbitControls";
 
 export function createRubiksEngine({ mountEl, cubeData }) {
-    // constantes d’anim
     const steps = 50;
     const stepAngle = Math.PI / (2 * steps);
 
@@ -50,7 +49,7 @@ export function createRubiksEngine({ mountEl, cubeData }) {
 
     // === Labels des faces (U,R,F,D,L,B) =========================
     const labelsGroup = new THREE.Group();
-    labelsGroup.visible = false; // masqué par défaut
+    labelsGroup.visible = false; 
     scene.add(labelsGroup);
     
  const _makeTextSprite = (text) => {
@@ -68,16 +67,15 @@ export function createRubiksEngine({ mountEl, cubeData }) {
         tex.needsUpdate = true;
         const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
         const sprite = new THREE.Sprite(mat);
-        const scale = 0.9; // taille visible
+        const scale = 0.9;
         sprite.scale.set(scale, scale, 1);
-        // pour le dispose ultérieur
         sprite.userData.__labelTexture = tex;
         return sprite;
     };
 
     const _buildFaceLabels = () => {
         labelsGroup.clear();
-        const d = 1.8; // distance du centre
+        const d = 1.8; 
         const entries = [
             { txt: "R", pos: [d, 0, 0] }, // right
             { txt: "L", pos: [-d, 0, 0] }, // left
@@ -130,7 +128,6 @@ export function createRubiksEngine({ mountEl, cubeData }) {
     };
     loop();
 
-    // API publique
     const api = {
         enqueue, pump,
         addCubeRotation: (m) => { enqueue(m); pump(); },
@@ -142,7 +139,6 @@ export function createRubiksEngine({ mountEl, cubeData }) {
             running = false; if (raf) cancelAnimationFrame(raf);
             ro.disconnect(); controls.dispose(); renderer.dispose();
             if (renderer.domElement && mountEl.contains(renderer.domElement)) mountEl.removeChild(renderer.domElement);
-                  // nettoyer les textures des labels
                 labelsGroup.traverse((obj) => {
                     if (obj.isSprite && obj.userData.__labelTexture) {
                         obj.userData.__labelTexture.dispose();

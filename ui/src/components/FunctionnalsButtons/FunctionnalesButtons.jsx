@@ -1,10 +1,8 @@
-import React from 'react';
-import { cubeApi } from '../../api/api_method';
 import './FunctionnalsButtons.css';
 
 
 export default function FunctionnalsButtons({
-  onReset, isLoading, shuffle ,onPause, onResume, onClear,
+  onReset, isLoading, shuffle,
   showFaceNames, onToggleFaceNames
 }) {
   return (

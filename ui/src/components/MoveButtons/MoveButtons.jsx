@@ -1,4 +1,3 @@
-import React from 'react';
 import './MoveButtons.css';
 
 const MoveButtons = ({ moves, onClick }) => (

@@ -8,10 +8,10 @@ export class CubeApiMethods {
       const response = await apiService.get('/cube/get-cube');
       return response.data;
     } catch (error) {
-      console.error('Erreur lors de la récupération du cube:', error);
+      console.error('Error while retrieving the cube:', error);
       throw new Error(
         error.response?.data?.message || 
-        'Impossible de récupérer l\'état du cube'
+        'Unable to retrieve cube state'
       );
     }
   }
@@ -50,7 +50,7 @@ export const cubeApi = {
       const response = await apiService.get('/health');
       return response.status === 200;
     } catch (error) {
-      console.warn('API non disponible:', error.message);
+      console.warn('API done:', error.message);
       return false;
     }
   }
