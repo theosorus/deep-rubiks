@@ -2,7 +2,7 @@
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Request
 
-from models.moves import AVAILABLE_MOVES,MOVE_CLASSES
+from core.moves import AVAILABLE_MOVES,MOVE_CLASSES
 from models.move_request import MoveRequest
 
 

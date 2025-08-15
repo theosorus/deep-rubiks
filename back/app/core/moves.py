@@ -4,16 +4,15 @@ from abc import ABC, abstractmethod
 import numpy as np
 import random
 
-from models.colors import FACE_INDEX
+from core.face import FACE_INDEX
 
 
 def _rot(face: np.ndarray, k: int = 1) -> np.ndarray:
-    # np.rot90 tourne CCW pour k>0, donc on inverse le signe pour avoir CW par défaut
     return np.rot90(face, -k)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Classe de base
+# Base
 # ──────────────────────────────────────────────────────────────────────────────
 
 class Move(ABC):
@@ -37,8 +36,7 @@ class U(Move):
         state[FACE_INDEX["U"]] = _rot(state[FACE_INDEX["U"]], 1)
         
         
-        
-        
+           
 class U_PRIME(Move):
     @staticmethod
     def make_move_on_cube(cube): 
@@ -86,8 +84,6 @@ class D_PRIME(Move):
         state[FACE_INDEX["D"]] = _rot(state[FACE_INDEX["D"]], -1)
         
         
-    
-
 class D2(Move):
     @staticmethod
     def make_move_on_cube( cube): 

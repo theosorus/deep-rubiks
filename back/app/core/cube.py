@@ -1,13 +1,18 @@
 # models/cube.py
 import numpy as np
 import random
-from models.colors import DEFAULT_FACE_COLORS,DEFAULT_FACE_ORDER,COLORS,COLORS_TO_INT,INT_TO_COLORS
-from models.moves import get_random_moves
+from core.colors import COLORS_TO_INT,INT_TO_COLORS
+from core.face import DEFAULT_FACE_COLORS,DEFAULT_FACE_ORDER
+from core.moves import get_random_moves
 
 
 class Cube:
-    def __init__(self):
-        self.state = self._init_cube()
+    def __init__(self,initial_state:np.ndarray = None) -> None:
+        if initial_state:
+            assert initial_state.shape == (6, 3, 3), "Initial state must be of shape (6, 3, 3)"
+            self.state = initial_state
+        else:
+            self.state = self._init_cube()
 
     def _init_cube(self) -> np.ndarray:
         state = np.empty((6,3,3), dtype=object)
@@ -61,3 +66,8 @@ class Cube:
                 s.append("[ " + "  ".join(f"{str(INT_TO_COLORS[v]):7}" for v in row) + " ]")
         s.append("----------")
         return "\n".join(s)
+    
+    def __eq__(self, value):
+        if not isinstance(value, Cube):
+            return False
+        return np.array_equal(self.state, value.state)
