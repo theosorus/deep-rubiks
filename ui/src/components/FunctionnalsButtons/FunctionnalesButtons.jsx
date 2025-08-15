@@ -1,9 +1,10 @@
 import React from 'react';
 import { cubeApi } from '../../api/api_method';
+import './FunctionnalsButtons.css';
 
 
 export default function FunctionnalsButtons({
-  onReset, isLoading, onPause, onResume, onClear,
+  onReset, isLoading, shuffle ,onPause, onResume, onClear,
   showFaceNames, onToggleFaceNames
 }) {
   return (
@@ -14,6 +15,10 @@ export default function FunctionnalsButtons({
 
       <button onClick={onToggleFaceNames}>
        {showFaceNames ? "Masquer noms faces" : "Afficher noms faces"}
+     </button>
+
+     <button onClick={shuffle}>
+       {isLoading ? 'Mélanger…' : 'Mélanger'}
      </button>
     </div>
   );
