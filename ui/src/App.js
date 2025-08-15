@@ -20,6 +20,10 @@ function App() {
     })();
   }, []);
 
+  useEffect(() => {
+  cubeRef.current?.setFaceLabelsVisible?.(showFaceNames);
+}, [cubeData, showFaceNames]);
+
   // Un seul coup
   const handleMove = async (move) => {
     // Joue l’anim immédiatement côté client
@@ -56,6 +60,18 @@ function App() {
     }
   };
 
+  const handleShuffle = async () => {
+    try {
+      await cubeApi.shuffle(100); 
+      const freshCube = await cubeApi.getCube();
+      setCubeData(freshCube);
+    }
+    catch (e) {
+      console.error('Mélange échoué :', e);
+    }
+  }
+
+
   return (
     <div className="App">
       <MoveButtons moves={moves} onClick={handleMove} />
@@ -66,6 +82,7 @@ function App() {
         onPause={() => cubeRef.current?.pause?.()}
         onResume={() => cubeRef.current?.resume?.()}
         onClear={() => cubeRef.current?.clearQueue?.()}
+        shuffle={handleShuffle}
         showFaceNames={showFaceNames}
         onToggleFaceNames={() => {
           const next = !showFaceNames;
