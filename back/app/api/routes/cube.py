@@ -60,3 +60,18 @@ async def reset_cube(request: Request):
         content={
             "message": "Cube reset successfully",
         })
+    
+    
+@cube_router.get("/shuffle")
+async def shuffle_cube(request: Request, nb_moves: int):
+    """
+    Shuffle the cube with a random number of moves (nb_moves passed as query param)
+    """
+    cube = request.app.state.cube
+    cube.shuffle_cube(min_move=nb_moves, max_move=nb_moves)
+    print(cube)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "message": f"Cube shuffled with {nb_moves} moves",
+        })
