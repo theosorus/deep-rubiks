@@ -1,22 +1,3 @@
-
-# davi_cost_to_go.py
-# Deep Approximate Value Iteration (DAVI) for learning a cost-to-go function.
-# Based on Agostinelli et al., 'Solving the Rubik's cube with deep reinforcement learning and search' (DeepCubeA).
-# This file implements:
-#   - A pluggable EnvAdapter interface for puzzles (Rubik's cube, sliding puzzles, etc.)
-#   - A neural network j_theta(s) approximating the cost-to-go J(s)
-#   - A DAVI training loop using one-step lookahead targets: J'(s) = min_a [ g(s, A(s,a)) + J_e(A(s,a)) ], with g=1.
-#   - A simple example "MockEnv" to verify the code structure.
-#
-# Notes:
-#   - To use with a real Rubik's cube implementation, implement an adapter that exposes the methods specified in EnvAdapter.
-#   - For the Cube, your adapter should:
-#       * return a solved/goal state
-#       * generate k-step random scrambles (from the goal) with legal moves
-#       * enumerate neighbors via all legal actions
-#       * encode states as one-hot (e.g., 54 stickers x 6 colors -> 324 dims) as in the paper.
-#
-
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, List, Sequence, Tuple, Optional
@@ -28,7 +9,6 @@ import torch
 
 from solver.env_adapter import EnvAdapter
 from solver.cost_to_go_net import CostToGoNet
-from solver.LineWorld import LineWorld
 
 
 
@@ -53,6 +33,7 @@ class DaviConfig:
     grad_clip_norm: Optional[float] = 1.0
     log_every: int = 10
 
+
 @dataclass
 class DaviArtifacts:
     net: CostToGoNet
@@ -60,15 +41,18 @@ class DaviArtifacts:
     history: List[Tuple[int, float]]  # (iteration, loss)
     cfg: DaviConfig
 
+
 def set_seed(seed: int = 42):
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
 def _encode_batch(env: EnvAdapter, states: Sequence[Any], device: str) -> torch.Tensor:
     xs = [env.encode(s) for s in states]
     X = torch.stack(xs, dim=0).to(device)
     return X
+
 
 def _targets_one_step_lookahead(env: EnvAdapter, target_net: CostToGoNet, states: Sequence[Any], device: str) -> torch.Tensor:
     """Compute y_i = min_a (1 + J_e(A(s_i, a))) ; and y=0 for goal states."""
@@ -89,6 +73,8 @@ def _targets_one_step_lookahead(env: EnvAdapter, target_net: CostToGoNet, states
             y = (1.0 + costs.min())
             y_list.append(y)
     return torch.stack(y_list, dim=0)  # [B]
+
+
 
 def train_davi(env: EnvAdapter, cfg: DaviConfig) -> DaviArtifacts:
     if cfg.seed is not None:
@@ -136,18 +122,5 @@ def train_davi(env: EnvAdapter, cfg: DaviConfig) -> DaviArtifacts:
 
 
 
-# ----------------------------
-# Convenience wrappers
-# ----------------------------
-
-def run_sanity_check():
-    env = LineWorld(n=8)
-    cfg = DaviConfig(input_dim=8, K=6, batch_size=64, iterations=1000, check_every=1, log_every=1)
-    artifacts = train_davi(env, cfg)
-    return artifacts
 
 
-
-if __name__ == "__main__":
-    # Optional smoke test on the mock environment
-    run_sanity_check()
