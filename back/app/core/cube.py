@@ -71,3 +71,10 @@ class Cube:
         if not isinstance(value, Cube):
             return False
         return np.array_equal(self.state, value.state)
+    
+    def is_solved(self) -> bool:
+        for face in self.state:
+            ref = face[0, 0]
+            if not np.all(face == ref):
+                return False
+        return True
