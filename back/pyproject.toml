@@ -6,17 +6,18 @@ authors = [
     {name = "Theo",email = "thoecastillo@yahoo.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "numpy (>=2.3.2,<3.0.0)",
-    "uvicorn (>=0.35.0,<0.36.0)",
-    "uvloop (>=0.21.0,<0.22.0)",
-    "fastapi (>=0.116.1,<0.117.0)"
-]
+requires-python = ">=3.12,<3.14"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.14"
+numpy = ">=2.3.2,<3.0.0"
+uvicorn = ">=0.35.0,<0.36.0"
+uvloop = ">=0.21.0,<0.22.0"
+fastapi = ">=0.116.1,<0.117.0"
+torch = "^2.8.0"
 
 [tool.poetry]
 packages = [{include = "back", from = "src"}]
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
