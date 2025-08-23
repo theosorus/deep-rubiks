@@ -6,10 +6,6 @@ import torch
 # ----------------------------
 
 class EnvAdapter(Protocol):
-    """Adapter/protocol an environment must implement to be trainable via DAVI.
-
-    State objects can be any Python object that your encode() method understands.
-    """
     def goal_state(self) -> Any: ...
     def is_goal(self, state: Any) -> bool: ...
     def random_scramble(self, state: Any, k: int) -> Any: ...
