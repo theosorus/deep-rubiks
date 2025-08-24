@@ -125,7 +125,7 @@ def load_model(filepath: str, device=None):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
-    checkpoint = torch.load(filepath, map_location=device)
+    checkpoint = torch.load(filepath, map_location=device,weights_only=False)
     
     cfg = checkpoint['config']
     cfg.device = device

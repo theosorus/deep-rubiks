@@ -9,6 +9,8 @@ import torch
 
 from solver.env_adapter import EnvAdapter
 from solver.cost_to_go_net import CostToGoNet
+from solver.utils import set_seed
+from solver.config import DaviConfig
 
 
 
@@ -16,22 +18,6 @@ from solver.cost_to_go_net import CostToGoNet
 # Training (DAVI)
 # ----------------------------
 
-@dataclass
-class DaviConfig:
-    input_dim: int
-    K: int = 30                    # max scrambles
-    batch_size: int = 1024
-    iterations: int = 10000
-    lr: float = 1e-3
-    check_every: int = 5000        # how often to check theta_e update criterion
-    epsilon: float = 0.05          # loss threshold to refresh target
-    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
-    num_res_blocks: int = 4
-    hidden1: int = 5000
-    hidden2: int = 1000
-    seed: Optional[int] = 42
-    grad_clip_norm: Optional[float] = 1.0
-    log_every: int = 10
 
 
 @dataclass
@@ -42,42 +28,9 @@ class DaviArtifacts:
     cfg: DaviConfig
 
 
-def set_seed(seed: int = 42):
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-
-def _encode_batch(env: EnvAdapter, states: Sequence[Any], device: str) -> torch.Tensor:
-    xs = [env.encode(s) for s in states]
-    X = torch.stack(xs, dim=0).to(device)
-    return X
-
-
-def _targets_one_step_lookahead(env: EnvAdapter, target_net: CostToGoNet, states: Sequence[Any], device: str) -> torch.Tensor:
-    """Compute y_i = min_a (1 + J_e(A(s_i, a))) ; and y=0 for goal states."""
-    y_list: List[torch.Tensor] = []
-    with torch.no_grad():
-        for s in states:
-            if env.is_goal(s):
-                y_list.append(torch.tensor(0.0, device=device))
-                continue
-            nbrs = env.neighbors(s)
-            if len(nbrs) == 0:
-                # Dead-end: cost is 0 by convention (or could be inf). We'll use a large number to discourage it.
-                y_list.append(torch.tensor(0.0, device=device))
-                continue
-            enc = _encode_batch(env, nbrs, device)  # [A, D]
-            costs = target_net(enc).squeeze(-1)      # [A]
-            # Each step cost is 1
-            y = (1.0 + costs.min())
-            y_list.append(y)
-    return torch.stack(y_list, dim=0)  # [B]
-
-
 
 def train_davi(env: EnvAdapter, cfg: DaviConfig) -> DaviArtifacts:
-    if cfg.seed is not None:
+    if cfg.seed:
         set_seed(cfg.seed)
 
     net = CostToGoNet(cfg.input_dim, hidden1=cfg.hidden1, hidden2=cfg.hidden2, num_res_blocks=cfg.num_res_blocks).to(cfg.device)
@@ -119,6 +72,33 @@ def train_davi(env: EnvAdapter, cfg: DaviConfig) -> DaviArtifacts:
     dt = time.time() - t0
     print(f"Training finished in {dt:.1f}s. Last loss={loss.item():.4f}")
     return DaviArtifacts(net=net, target_net=target_net, history=history, cfg=cfg)
+
+
+def _encode_batch(env: EnvAdapter, states: Sequence[Any], device: str) -> torch.Tensor:
+    xs = [env.encode(s) for s in states]
+    X = torch.stack(xs, dim=0).to(device)
+    return X
+
+
+def _targets_one_step_lookahead(env: EnvAdapter, target_net: CostToGoNet, states: Sequence[Any], device: str) -> torch.Tensor:
+    """Compute y_i = min_a (1 + J_e(A(s_i, a))) ; and y=0 for goal states."""
+    y_list: List[torch.Tensor] = []
+    with torch.no_grad():
+        for s in states:
+            if env.is_goal(s):
+                y_list.append(torch.tensor(0.0, device=device))
+                continue
+            nbrs = env.neighbors(s)
+            if len(nbrs) == 0:
+                # Dead-end: cost is 0 by convention (or could be inf). We'll use a large number to discourage it.
+                y_list.append(torch.tensor(0.0, device=device))
+                continue
+            enc = _encode_batch(env, nbrs, device)  # [A, D]
+            costs = target_net(enc).squeeze(-1)      # [A]
+            # Each step cost is 1
+            y = (1.0 + costs.min())
+            y_list.append(y)
+    return torch.stack(y_list, dim=0)  # [B]
 
 
 
