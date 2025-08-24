@@ -29,7 +29,6 @@ class ResidualBlock(nn.Module):
         return out
 
 class CostToGoNet(nn.Module):
-    """MLP with two FC layers then residual blocks, then linear head -> scalar J(s)."""
     def __init__(self, input_dim: int, hidden1: int = 5000, hidden2: int = 1000, num_res_blocks: int = 4):
         super().__init__()
         self.fc1 = nn.Linear(input_dim, hidden1)
