@@ -15,7 +15,6 @@ from solver.config import AStarConfig
 
 @dataclass
 class SearchNode:
-    """Node in the A* search tree."""
     state: np.ndarray
     parent: Optional[SearchNode]
     action: Optional[str]  # Move that led to this state
@@ -39,7 +38,6 @@ class SearchNode:
 
 @dataclass
 class SearchResult:
-    """Result of A* search."""
     solved: bool
     solution_moves: List[str]
     solution_length: int
@@ -50,7 +48,6 @@ class SearchResult:
 
 
 class AStarSolver:
-    """A* solver for Rubik's Cube using learned heuristic."""
     
     def __init__(self, net: CostToGoNet, adapter: RubiksCubeAdapter, device: str = 'cuda'):
         self.net = net
@@ -60,7 +57,6 @@ class AStarSolver:
         self.net.eval()
     
     def _evaluate_heuristic(self, states: List[np.ndarray]) -> List[float]:
-        """Evaluate the heuristic function for a batch of states."""
         with torch.no_grad():
             # Encode states
             encoded = [self.adapter.encode(state) for state in states]
@@ -72,14 +68,12 @@ class AStarSolver:
         return costs.tolist()
     
     def _evaluate_single_heuristic(self, state: np.ndarray) -> float:
-        """Evaluate heuristic for a single state."""
         with torch.no_grad():
             encoded = self.adapter.encode(state).unsqueeze(0).to(self.device)
             cost = self.net(encoded).item()
         return cost
     
     def _reconstruct_path(self, node: SearchNode) -> List[str]:
-        """Reconstruct the solution path from goal to start."""
         moves = []
         current = node
         while current.parent is not None:
@@ -88,20 +82,10 @@ class AStarSolver:
         return list(reversed(moves))
     
     def _state_to_key(self, state: np.ndarray) -> bytes:
-        """Convert state to hashable key for closed set."""
         return state.tobytes()
     
     def solve(self, initial_state: np.ndarray, config: Optional[AStarConfig] = None) -> SearchResult:
-        """
-        Solve the Rubik's Cube using weighted A* search.
-        
-        Args:
-            initial_state: The scrambled cube state
-            config: Search configuration
-            
-        Returns:
-            SearchResult with solution if found
-        """
+
         if config is None:
             config = AStarConfig()
         
@@ -250,23 +234,17 @@ class AStarSolver:
 
 
 class BatchAStarSolver(AStarSolver):
-    """
-    Enhanced A* solver with batch processing and optimizations from DeepCubeA paper.
-    """
     
     def solve_batch(self, initial_states: List[np.ndarray], config: Optional[AStarConfig] = None) -> List[SearchResult]:
-        """Solve multiple cubes in parallel."""
         results = []
         for state in initial_states:
             result = self.solve(state, config)
             results.append(result)
         return results
     
+    
     def solve_with_beam_search(self, initial_state: np.ndarray, beam_width: int = 100, 
                               max_depth: int = 30) -> SearchResult:
-        """
-        Alternative search using beam search for faster but potentially suboptimal solutions.
-        """
         start_time = time.time()
         
         if self.adapter.is_goal(initial_state):
@@ -351,29 +329,13 @@ class BatchAStarSolver(AStarSolver):
         )
 
 
-def solve_cube(cube: Cube, model_path: Optional[str] = None, 
+def solve_cube(cube: Cube, model_path: str, 
                config: Optional[AStarConfig] = None) -> SearchResult:
-    """
-    High-level function to solve a Rubik's Cube.
+    from solver.utils import load_model
     
-    Args:
-        cube: The Cube object to solve
-        model_path: Path to trained model (optional)
-        config: A* search configuration
-        
-    Returns:
-        SearchResult with solution
-    """
-    from solver.train import load_model, train_small_model
-    
-    # Load or train model
-    if model_path:
-        print(f"Model path provided: {model_path}, loading model...")
-        artifacts = load_model(model_path)
-    else:
-        print("No model provided, training a small model...")
-        artifacts = train_small_model()
-    
+    print(f"Model path provided: {model_path}, loading model...")
+    artifacts = load_model(model_path)
+
     # Create solver
     adapter = RubiksCubeAdapter()
     solver = AStarSolver(artifacts.net, adapter)
