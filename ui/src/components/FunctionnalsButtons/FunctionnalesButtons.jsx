@@ -3,7 +3,7 @@ import './FunctionnalsButtons.css';
 
 export default function FunctionnalsButtons({
   onReset, isLoading, shuffle,
-  showFaceNames, onToggleFaceNames
+  showFaceNames, onToggleFaceNames,onSolve
 }) {
   return (
     <div className="functional-buttons">
@@ -17,6 +17,10 @@ export default function FunctionnalsButtons({
 
      <button onClick={shuffle}>
        {isLoading ? 'Mélanger…' : 'Mélanger'}
+     </button>
+
+     <button onClick={onSolve}>
+       {isLoading ? 'Solve…' : 'Solve'}
      </button>
     </div>
   );

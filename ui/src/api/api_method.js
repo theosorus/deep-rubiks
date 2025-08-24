@@ -36,6 +36,21 @@ export class CubeApiMethods {
     return data;
   }
 
+  static async solve() {
+  try {
+    const { data } = await apiService.post('/cube/solve', {}, {
+      timeout: 30000 
+    });
+    return data;
+  } catch (error) {
+    console.error('Error while solving the cube:', error);
+    throw new Error(
+      error.response?.data?.message || 
+      'Unable to solve the cube'
+    );
+  }
+}
+
 }
 
 export const cubeApi = {
@@ -43,6 +58,7 @@ export const cubeApi = {
   getMoves: () => CubeApiMethods.getMoves(),
   rotate: (move) => CubeApiMethods.rotate(move),
   reset: () => CubeApiMethods.reset(),
+  solve: () => CubeApiMethods.solve(),
   shuffle: (nb_moves) => CubeApiMethods.shuffle(nb_moves),
   
   checkHealth: async () => {

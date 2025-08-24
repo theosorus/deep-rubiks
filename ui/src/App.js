@@ -40,6 +40,31 @@ function App() {
     }
   };
 
+const handleSolve = async () => {
+  try {
+    const result = await cubeApi.solve();
+    console.log('Solve success:', result);
+    
+    if (result.solved && result.solution_moves && result.solution_moves.length > 0) {
+      console.log(`Executing solution: ${result.solution_moves.join(' ')}`);
+      console.log(`Solution found in ${result.search_time.toFixed(3)}s`);
+      console.log(`Nodes expanded: ${result.nodes_expanded}`);
+      
+      for (const move of result.solution_moves) {
+        cubeRef.current?.addCubeRotation(move);
+        
+      }
+    } else if (!result.solved) {
+      console.log('No solution found');
+      alert('No solution found');
+    }
+    
+  } catch (e) {
+    console.error('Solve failed:', e);
+    alert('Error');
+  }
+};
+
 
   const handleReset = async () => {
     setIsResetting(true);
@@ -75,6 +100,7 @@ function App() {
         isLoading={isResetting}
         shuffle={handleShuffle}
         showFaceNames={showFaceNames}
+        onSolve={handleSolve}
         onToggleFaceNames={() => {
           const next = !showFaceNames;
           setShowFaceNames(next);
