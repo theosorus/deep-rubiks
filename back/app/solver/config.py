@@ -24,7 +24,6 @@ class DaviConfig:
     
 @dataclass  
 class AStarConfig:
-    """Configuration for A* search."""
     weight: float = 1.0  # Weight for weighted A* (1.0 = standard A*)
     max_nodes: int = 100000  # Maximum nodes to expand
     batch_size: int = 512  # Batch size for neural network evaluation
