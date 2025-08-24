@@ -9,6 +9,9 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from core.cube import Cube
+from solver.rubiks_cube_adapter import RubiksCubeAdapter
+from solver.utils import load_model
+from solver.astar import AStarSolver
 from api.main_router import api_router
 
 logger = logging.getLogger()
@@ -23,6 +26,10 @@ async def lifespan(app: FastAPI):
     app.state.cube = Cube()
     print(app.state.cube)
     logger.info("Cube created and stored in app state")
+    
+    artifacts = load_model("../output/rubiks_cube_solver_small.pth")
+    adapter = RubiksCubeAdapter()
+    app.state.solver = AStarSolver(artifacts.net, adapter)
     
     yield
     logger.info("Application shutdown")
