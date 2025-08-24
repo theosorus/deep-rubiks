@@ -340,12 +340,16 @@ def get_random_moves(n: int) -> list[Move]:
     return [get_move_by_name(random.choice(AVAILABLE_MOVES)) for _ in range(n)]
 
 
-def _apply_moves_on_cube(cube, moves: list[Move]) -> None:
+def _apply_moves_on_cube(cube, moves: list[Move],print_detail=False) -> None:
     """Apply a list of moves on the given cube."""
+    if print_detail:
+        print(f"Initial cube: {cube}")
     for move in moves:
         move.make_move_on_cube(cube)
+        if print_detail:
+            print(f"After move {move.__name__}: {cube}")
         
-def apply_moves(cube, moves: list[str]) -> None:
+def apply_moves(cube, moves: list[str],print_detail=False) -> None:
     """Apply a list of move names on the given cube."""
     move_objects = [get_move_by_name(move) for move in moves]
-    _apply_moves_on_cube(cube, move_objects)
+    _apply_moves_on_cube(cube, move_objects,print_detail=print_detail)
