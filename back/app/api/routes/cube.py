@@ -4,7 +4,10 @@ from fastapi import APIRouter, Request
 
 from core.moves import AVAILABLE_MOVES,MOVE_CLASSES
 from models.move_request import MoveRequest
-
+from solver.astar import SearchResult
+from core.moves import apply_moves
+from solver.astar import AStarConfig
+from dataclasses import asdict
 
 cube_router = APIRouter()
 
@@ -75,3 +78,36 @@ async def shuffle_cube(request: Request, nb_moves: int):
         content={
             "message": f"Cube shuffled with {nb_moves} moves",
         })
+    
+    
+@cube_router.post("/solve")
+async def solve_cube(request: Request):
+    """
+    Solve the cube using the A* solver
+    """
+    cube = request.app.state.cube
+    solver = request.app.state.solver
+    
+    
+    solution : SearchResult = solver.solve(cube.state)
+    
+    if not solution.solved:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "Failed to solve the cube",
+            })
+        
+    apply_moves(cube, solution.solution_moves)
+    
+    result_dict = asdict(solution)
+    result_dict['final_state'] = solution.final_state.tolist()
+    print(result_dict)
+    
+    return result_dict
+    
+    
+
+
+    
+
