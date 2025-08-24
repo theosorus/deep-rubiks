@@ -1,4 +1,6 @@
-from solver.train import train_small_model,evaluate_solver,save_model
+from solver.train import train_small_model
+from solver.utils import save_model, load_model, get_device
+from solver.evaluate import evaluate_solver
 import torch
 
 from solver.utils import get_device
@@ -45,6 +47,7 @@ def main_astar():
     cube = Cube()
     test_moves = ["R", "U", "R'", "U'"]  # Simple scramble
     apply_moves(cube, test_moves)
+
     
     print("Scrambled cube:")
     print(f"Applied moves: {test_moves}")
@@ -64,8 +67,9 @@ def main_astar():
         
         # Verify solution
         cube_verify = Cube()
-        apply_moves(cube_verify, test_moves)
-        apply_moves(cube_verify, result.solution_moves)
+        print(test_moves)
+        apply_moves(cube_verify, test_moves,print_detail=False)
+        apply_moves(cube_verify, result.solution_moves,print_detail=False)
         print(f"Verification: Cube solved = {cube_verify.is_solved()}")
     else:
         print("No solution found within limits")
