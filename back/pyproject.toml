@@ -15,6 +15,8 @@ uvicorn = ">=0.35.0,<0.36.0"
 uvloop = ">=0.21.0,<0.22.0"
 fastapi = ">=0.116.1,<0.117.0"
 torch = "^2.8.0"
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
 
 [tool.poetry]
 packages = [{include = "back", from = "src"}]

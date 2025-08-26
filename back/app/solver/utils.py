@@ -60,4 +60,16 @@ def load_model(filepath: str, device=None):
     
     print(f"Model loaded from {filepath}")
     return artifacts
+
+
+def init_solver(model_path: str, device: torch.device):
+    from solver.utils import load_model, get_device
+    from solver.rubiks_cube_adapter import RubiksCubeAdapter
+    from solver.astar import AStarSolver
+    
+    artifacts = load_model(model_path, device=device)
+    adapter = RubiksCubeAdapter()
+    solver = AStarSolver(artifacts.net, adapter)
+    
+    return solver
     

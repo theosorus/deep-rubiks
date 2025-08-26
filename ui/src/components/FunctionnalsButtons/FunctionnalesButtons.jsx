@@ -8,20 +8,20 @@ export default function FunctionnalsButtons({
   return (
     <div className="functional-buttons">
       <button onClick={onReset} disabled={isLoading}>
-        {isLoading ? 'Reset…' : 'Reset'}
+        {isLoading ? 'Resetting…' : 'Reset'}
       </button>
 
       <button onClick={onToggleFaceNames}>
-       {showFaceNames ? "Masquer noms faces" : "Afficher noms faces"}
-     </button>
+        {showFaceNames ? "Hide face names" : "Show face names"}
+      </button>
 
-     <button onClick={shuffle}>
-       {isLoading ? 'Mélanger…' : 'Mélanger'}
-     </button>
+      <button onClick={shuffle}>
+        {isLoading ? 'Shuffling…' : 'Shuffle'}
+      </button>
 
-     <button onClick={onSolve}>
-       {isLoading ? 'Solve…' : 'Solve'}
-     </button>
+      <button onClick={onSolve}>
+        {isLoading ? 'Solving…' : 'Solve'}
+      </button>
     </div>
   );
 }

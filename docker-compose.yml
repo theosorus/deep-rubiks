@@ -18,6 +18,7 @@ services:
       - rubiks-cube-network
 
   backend:
+    image: deep-rubiks-backend:local
     build:
       context: ./back
       dockerfile: Dockerfile.backend
