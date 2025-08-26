@@ -27,9 +27,10 @@ async def lifespan(app: FastAPI):
     print(app.state.cube)
     logger.info("Cube created and stored in app state")
     
-    artifacts = load_model("../output/rubiks_cube_solver_small.pth")
+    artifacts = load_model("./output/rubiks_cube_solver_small.pth")
     adapter = RubiksCubeAdapter()
     app.state.solver = AStarSolver(artifacts.net, adapter)
+    # DEVICE 
     
     yield
     logger.info("Application shutdown")

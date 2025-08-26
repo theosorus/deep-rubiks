@@ -28,4 +28,4 @@ class AStarConfig:
     max_nodes: int = 100000  # Maximum nodes to expand
     batch_size: int = 512  # Batch size for neural network evaluation
     timeout: float = 60.0  # Maximum search time in seconds
-    verbose: bool = False
+    verbose: bool = True

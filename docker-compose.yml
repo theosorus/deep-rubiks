@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:5001
+    depends_on:
+      - backend
+    volumes:
+      - ./ui/src:/app/src
+      - ./ui/public:/app/public
+    networks:
+      - rubiks-cube-network
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/back/app
+    volumes:
+      # Monte le code source pour le hot reload
+      - ./back:/back
+    networks:
+      - rubiks-cube-network
+
+networks:
+  rubiks-cube-network:
+    driver: bridge

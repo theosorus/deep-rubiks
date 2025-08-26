@@ -1,0 +1,23 @@
+# Dockerfile.backend
+FROM python:3.12-slim
+
+WORKDIR /back
+
+# Install Poetry
+RUN pip install poetry
+
+# Copy Poetry configuration files
+COPY pyproject.toml poetry.lock ./
+
+# Configure Poetry to not create virtualenv and install dependencies
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
+
+
+COPY . .
+
+# Expose port
+EXPOSE 5000
+
+# Launch the application with uvicorn
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
