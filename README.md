@@ -46,7 +46,7 @@ The system comprises two main components:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/theosorus/deep-rubiks
 cd deepcubea-solver
 
 # Build containers
