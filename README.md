@@ -1,62 +1,65 @@
-![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-orange.svg)
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.8+-orange.svg)
 ![React](https://img.shields.io/badge/React-18.x-61dafb.svg)
 ![Three.js](https://img.shields.io/badge/Three.js-Latest-black.svg)
 
 # 🎲 DeepCubeA - AI-Powered Rubik's Cube Solver
 
-> **A modern implementation of the DeepCubeA algorithm for solving Rubik's Cube using neural networks and A* search with web vizualisation**
-
+> **A modern implementation of the DeepCubeA algorithm for solving Rubik's Cube using neural networks and A* search with web visualization**
 
 <div align="center">
-  <img src="assets/deep_rubiks_gif_1.gif" alt="FormulaTracker demo gif" width="700"/>
+<img src="assets/deep_rubiks_gif_1.gif" alt="FormulaTracker demo gif" width="700"/>
 </div>
 
+## 🎯 **DeepCubeA** Architecture
 
+The system comprises two main components:
 
+### 1. Cost-to-Go Function (J(s))
+- **Deep neural network**: MLP with residual blocks
+- **Trained with DAVI** (Deep Approximate Value Iteration)
+- **Predicts the number of moves** required to solve the cube from any state
 
+### 2. A* Pathfinder
+- **Weighted A* search** using J(s) as heuristic
+- **Beam Search** as alternative for fast solutions
+- **Batch optimizations** for state evaluation
 
-##  🎯 **DeepCubeA** Architecture
+## 🏗️ Project Architecture
 
-Le système comprend deux composants principaux :
+### Backend (`/back`)
+- **FastAPI** REST API server
+- **PyTorch** neural network implementation
+- **DAVI training** algorithm for cost-to-go function
+- **A* solver** with neural heuristic
+- **Model persistence** and evaluation tools
+- Runs on `localhost:8000`
 
-### 1. Fonction Cost-to-Go (J(s))
-- **Réseau de neurones profond** : MLP avec blocs résiduels
-- **Entraîné par DAVI** (Deep Approximate Value Iteration)
-- **Prédit le nombre de mouvements** nécessaires pour résoudre le cube depuis n'importe quel état
-
-### 2. Pathfinder A*
-- **Recherche A* pondérée** utilisant J(s) comme heuristique
-- **Beam Search** comme alternative pour des solutions rapides
-- **Optimisations par batch** pour l'évaluation des états
-
-
-
-## Project Architecture
-
-### Backend
-
-fastapi , pytorch
-on localhost:8000
-
-### Frontend
-
-frontend with react , threejs 
-on localhost:3000
-
-
+### Frontend (`/ui`)
+- **React 18** modern web interface
+- **Three.js** 3D Rubik's cube visualization
+- **Real-time animations** of solving process
+- **Interactive controls** for manual manipulation
+- Runs on `localhost:3000`
 
 ## 🚀 Quick Start
 
-
 ```bash
-# Build
+# Clone the repository
+git clone <repository-url>
+cd deepcubea-solver
+
+# Build containers
 docker compose build
 
-# Launch
+# Launch the application
 docker compose up
-
 ```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
 ## 🎯 Usage
 
@@ -75,8 +78,6 @@ docker compose up
 ## 🎓 Scientific References
 
 This project implements the algorithm described in:
-> "Solving the Rubik's Cube with Deep Reinforcement Learning and Search"
+
+> "Solving the Rubik's Cube with Deep Reinforcement Learning and Search"  
 > McAleer et al. (2018)
-
-
-
