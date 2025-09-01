@@ -25,7 +25,7 @@ def train_small_model():
         batch_size=128,      # Smaller batch for faster iteration
         K=10,               # Smaller max scramble
         check_every=100,    # Check more frequently
-        log_every=50,       # Log more frequently
+        log_every=1,       # Log more frequently
         hidden1=256,        # Smaller network
         hidden2=128,        # Smaller network
         num_res_blocks=2    # Fewer residual blocks
@@ -56,8 +56,8 @@ def train_full_model():
     
     # Use the paper's hyperparameters
     config = create_training_config(
-        iterations=100000,   # Full training
-        batch_size=10000,    # Large batch as in paper
+        iterations=10000,   # Full training
+        batch_size=1000,    # Large batch as in paper
         K=30,               # Max scramble depth
         lr=1e-4,            # Learning rate from paper
         check_every=1000,   # Target network update frequency
@@ -65,7 +65,7 @@ def train_full_model():
         hidden1=5000,       # Large first hidden layer
         hidden2=1000,       # Large second hidden layer
         num_res_blocks=4,   # 4 residual blocks as in paper
-        log_every=1000      # Log less frequently
+        log_every=1     # Log less frequently
     )
     
     print(f"\nFull training configuration (DeepCubeA paper settings):")
@@ -153,10 +153,14 @@ def train_davi(env: EnvAdapter, cfg: DaviConfig) -> DaviArtifacts:
 
         if it % cfg.log_every == 0 or it == 1:
             history.append((it, float(loss.item())))
+            # Add real-time logging here
+            elapsed = time.time() - t0
+            print(f"Iteration {it}/{cfg.iterations} [{it/cfg.iterations*100:.1f}%] - Loss: {loss.item():.6f} - Time: {elapsed:.1f}s")
 
         # Target network refresh heuristic from paper: when loss < epsilon at check interval
         if (it % cfg.check_every == 0) and (loss.item() < cfg.epsilon):
             target_net.load_state_dict(net.state_dict())
+            print(f"✓ Target network updated at iteration {it} (loss = {loss.item():.6f})")
 
     dt = time.time() - t0
     print(f"Training finished in {dt:.1f}s. Last loss={loss.item():.4f}")
