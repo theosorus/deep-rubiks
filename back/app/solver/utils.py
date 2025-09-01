@@ -1,6 +1,7 @@
 import random
 
 import torch
+import os
 
 
 def get_device():
@@ -13,6 +14,11 @@ def set_seed(seed: int = 42):
     
     
 def save_model(artifacts, filepath: str):
+    # Ensure output directory exists
+    dirpath = os.path.dirname(filepath)
+    if dirpath:
+        os.makedirs(dirpath, exist_ok=True)
+    
     torch.save({
         'model_state_dict': artifacts.net.state_dict(),
         'target_model_state_dict': artifacts.target_net.state_dict(),
